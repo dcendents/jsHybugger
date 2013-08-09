@@ -59,6 +59,7 @@ public class DebugSession extends BaseWebSocketHandler {
 	public final String PROVIDER_PROTOCOL;
 
 	private final String sessionId;
+	private boolean connected;
 	
 	
 	/**
@@ -97,6 +98,15 @@ public class DebugSession extends BaseWebSocketHandler {
 		sessionId = UUID.randomUUID().toString();
 	}
 	
+	/**
+	 * Checks if session is connected.
+	 *
+	 * @return true, if is connected
+	 */
+	public boolean isConnected() {
+		return connected;
+	}
+	
 	public void setBrowserInterface(BrowserInterface browserInterface) {
 		browserInterface.setDebugSession(this);
 		this.browserInterface = browserInterface;
@@ -116,6 +126,13 @@ public class DebugSession extends BaseWebSocketHandler {
 	 */
 	@Override
 	public void onOpen( final WebSocketConnection conn ) {
+		if (connected) {
+			Log.e(TAG, "Connection request rejected, a debugging session is already active!");
+			conn.close();
+			return;
+		}
+		connected=true;
+
 		System.out.println( conn.httpRequest().remoteAddress() + " entered the debugger space!" );
 		connections.add(conn);
 
@@ -138,6 +155,7 @@ public class DebugSession extends BaseWebSocketHandler {
 	public void onClose( WebSocketConnection conn) {
 		System.out.println( conn + " has left the debugger space!" );
 		connections.remove(conn);
+		connected=false;		
 	}
 
 	/* (non-Javadoc)
