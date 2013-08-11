@@ -161,10 +161,9 @@ public abstract class AbstractBrowserInterface implements BrowserInterface {
 	 *
 	 * @param wait true will block the call till new data is available
 	 * @return the queued message
-	 * @throws InterruptedException the interrupted exception
 	 */
 	@JavascriptInterface
-	public String getQueuedMessage(boolean wait) throws InterruptedException {
+	public String getQueuedMessage(boolean wait) {
 		synchronized (messageQueue) {
 			//Log.d(TAG, "getQueuedMessage");
 			syncQueueMode = wait;
