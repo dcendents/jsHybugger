@@ -46,12 +46,12 @@
 			<dependency>
 				<groupId>org.webbitserver</groupId>
 				<artifactId>webbit</artifactId>
-				<version>0.4.15</version>
+				<version>0.4.14</version>
 			</dependency>
 			<dependency>
 				<groupId>io.netty</groupId>
 				<artifactId>netty</artifactId>
-				<version>3.6.5.Final</version>
+				<version>3.6.3.Final</version>
 			</dependency>
 		</dependencies>
 	</dependencyManagement>
