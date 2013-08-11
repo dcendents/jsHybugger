@@ -131,7 +131,8 @@ public class RuntimeMsgHandler extends AbstractMsgHandler {
 		
 		debugSession.getBrowserInterface().sendMsgToWebView(
 				"getProperties",
-				new JSONObject().put("objectId", params.getString("objectId")),
+				new JSONObject().put("objectId", params.getString("objectId"))
+					.put("ownProperties", params.getString("ownProperties")),
 				new ReplyReceiver() {
 
 			@Override

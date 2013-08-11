@@ -14,6 +14,13 @@
  * limitations under the License.
  */
 
+if (window['JsHybuggerConfig'] === undefined)
+{
+	window.JsHybuggerConfig = {
+		endpoint: 'http://localhost:8889/jshybugger/'
+	};		
+}
+
 /* 
  * JsHybugger runtime library.
  */
@@ -37,7 +44,7 @@ window.JsHybugger = (function() {
 	var NOT_WHITESPACE_MATCHER = /[^\s]/;
 	var FRAME_ID = new String(new Date().getTime() % 3600000);
 	var PROTOCOL = 'content://jsHybugger.org/';
-	
+	var url = JsHybuggerConfig.endpoint;
 	
 	if (window['JsHybuggerNI'] === undefined) {
 		console.info("JsHybugger loaded outside a native app.")
@@ -75,7 +82,7 @@ window.JsHybugger = (function() {
 		   }
 		}
 		pushChannel.timeout = 30000;
-		pushChannel.open('GET', 'http://localhost:8889/jshybugger/pushChannel', true);
+		pushChannel.open('GET', url + Math.random() + 'pushChannel', true);
 		pushChannel.send();
 	}
     
@@ -87,8 +94,12 @@ window.JsHybugger = (function() {
 		      response = xmlObj.status == '200' && xmlObj.responseText && xmlObj.responseText.length > 0 ? xmlObj.responseText : null;
 		   }
 		}
-		xmlObj.open ('POST', 'http://localhost:8889/jshybugger/' + cmd, false);
-		xmlObj.send (stringifySafe(data));
+    	xmlObj.open ('POST', url + cmd, false);
+    	try {
+			xmlObj.send (stringifySafe(data));
+		} catch (e) {
+			console.log(e);
+		}
 		
 		return response;
     }
@@ -1059,6 +1070,11 @@ window.JsHybugger = (function() {
 			var obj = getObject(cmd.data.objectId);
 			
 			for (expr in obj) {
+				
+				if (cmd.data.ownProperties && !obj.hasOwnProperty(expr)) {
+					continue;
+				}			
+				
 				var oVal = obj[expr];
 				var oType = typeof(oVal);
 				
@@ -1072,9 +1088,15 @@ window.JsHybugger = (function() {
 					result.value.objectId=cmd.data.objectId + "." + expr;
 					result.value.description = oVal.constructor && oVal.constructor.name ? oVal.constructor.name : 'object';
 				} else if (oType == 'function') {
-					result.value.description = oVal ? oVal.toString() : 'function';
+					var fctnBody = oVal ? oVal.toString() : 'function anonymous()';
+					if (fctnBody) {
+						fctnBody = fctnBody.substr(0, fctnBody.indexOf(')')+1) + "{ }";
+					} 
+					result.value.description = fctnBody;
 				} else {
-					result.value.value = oVal;
+					if (oType != 'undefined') {
+						result.value.value = oVal;
+					}
 				}
 				
 		        result.writable = false;
@@ -1178,7 +1200,14 @@ window.JsHybugger = (function() {
     }
     
 	function stringifySafe(obj){
-	    var printedObjects = [];
+		// first try - standard stringify - if this fails, do custom JSON stringify
+		try {
+			return JSON.stringify(obj);
+		} catch (er) {
+			//console.warn("JSON.stringify() failed, use fallback version. " + er);
+		}
+		
+		var printedObjects = [];
 	    var printedObjectKeys = [];
 	    var lastKey, lastVal;
 
@@ -1189,7 +1218,7 @@ window.JsHybugger = (function() {
 	        var printedObjIndex = false;
 	        
 	        printedObjects.forEach(function(obj, index){
-	            if(obj===value){
+	        	if((obj===value) && (typeof(value)=="object")){
 	                printedObjIndex = index;
 	            }
 	        });
