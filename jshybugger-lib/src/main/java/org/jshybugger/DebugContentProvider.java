@@ -382,10 +382,26 @@ public class DebugContentProvider extends ContentProvider {
         	
         } else if (url.indexOf(":") < 0) {  // Must be a local file
         	
-        	return new InputResource(
+        	try {
+        		// first: search file in assests folder
+        		return new InputResource(
         			url.endsWith(".js"),
         			url.endsWith(".html"), 
         			new BufferedInputStream(getContext().getAssets().open(url,AssetManager.ACCESS_STREAMING)));
+        		
+        	} catch (FileNotFoundException fex) {
+        		// second: search directly
+        		File f = new File(url);
+        		if (!f.exists()) {
+            		// third: search from root file system (prepend trailing slash)
+        			f = new File("/" + url);
+        		}
+        		
+        		return new InputResource(
+        			url.endsWith(".js"),
+        			url.endsWith(".html"), 
+        			new BufferedInputStream(new FileInputStream(f)));
+        	}
         	
         } else { // loading network resource
         	URL urlRes = new URL(url);
