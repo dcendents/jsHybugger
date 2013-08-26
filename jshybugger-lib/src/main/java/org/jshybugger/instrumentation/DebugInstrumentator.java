@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 Wolfgang Flohr-Hochbichler (developer@jshybugger.org)
+ * Copyright 2013 Wolfgang Flohr-Hochbichler (wflohr@jshybugger.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -94,28 +94,26 @@ public class DebugInstrumentator implements NodeVisitor {
 		} else if (node instanceof ForLoop) {
 
 			ForLoop forLoop = ((ForLoop)node);
-			if (forLoop.getBody() instanceof Scope) {
-				instrumentStatement(node, false);
-			} else {
+			if (!Scope.class.equals(forLoop.getBody().getClass())) {
 				forLoop.setBody(makeScope(forLoop.getBody()));
 			}
+			instrumentStatement(node, false);
 
 		} else if (node instanceof WhileLoop) {
 
 			WhileLoop whileLoop = ((WhileLoop)node);
-			if (whileLoop.getBody() instanceof Scope) {
-				instrumentStatement(node, false);
-			} else {
+			if (!Scope.class.equals(whileLoop.getBody().getClass())) {
 				whileLoop.setBody(makeScope(whileLoop.getBody()));
 			}
+			instrumentStatement(node, false);
 
 		} else if (node instanceof IfStatement) {
 
 			IfStatement ifStmt = ((IfStatement)node);
-			if ((ifStmt.getThenPart() != null) && !(ifStmt.getThenPart() instanceof Scope)) {
+			if ((ifStmt.getThenPart() != null) && !Scope.class.equals(ifStmt.getThenPart().getClass())) {
 				ifStmt.setThenPart(makeScope(ifStmt.getThenPart()));
 			} 
-			if ((ifStmt.getElsePart() != null) && !(ifStmt.getElsePart() instanceof Scope)) {
+			if ((ifStmt.getElsePart() != null) && !Scope.class.equals(ifStmt.getElsePart().getClass())) {
 				ifStmt.setElsePart(makeScope(ifStmt.getElsePart()));
 			} 
 			instrumentStatement(node, false);
